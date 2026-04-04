@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BPO Chat System</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #e5ddd5;
+}
+
+/* Layout */
+.app {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 25%;
+    background: #075e54;
+    color: white;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.section-title {
+    margin-top: 15px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.chat-item {
+    padding: 12px;
+    background: #128c7e;
+    margin-top: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.chat-item:hover {
+    background: #25d366;
+}
+
+/* Chat Area */
+.chat-area {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.chat-header {
+    background: #075e54;
+    color: white;
+    padding: 15px;
+    font-size: 18px;
+}
+
+/* Chat Box */
+.chat-box {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* Messages */
+.message {
+    padding: 10px;
+    margin: 10px 0;
+    max-width: 65%;
+    border-radius: 12px;
+}
+
+.sent {
+    background: #dcf8c6;
+    margin-left: auto;
+}
+
+.received {
+    background: white;
+}
+
+.name {
+    font-size: 12px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 3px;
+}
+
+/* Input */
+.chat-input {
+    display: flex;
+    padding: 10px;
+    background: #f0f0f0;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+}
+
+.chat-input button {
+    padding: 10px 15px;
+    margin-left: 10px;
+    background: #075e54;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+</style>
+
+</head>
+<body>
+
+<div class="app">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>BPO Chat</h2>
+
+        <div class="section-title">Groups</div>
+        <div id="groupList"></div>
+
+        <div class="section-title">AI</div>
+        <div class="chat-item" onclick="openAI()">🤖 AI Assistant</div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area">
+
+        <div class="chat-header" id="chatHeader">
+            Select a chat
+        </div>
+
+        <div class="chat-box" id="chatBox"></div>
+
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+let currentUser = "You";
+let currentChat = null;
+
+/* GROUPS */
+let groups = {
+    "Support Team": [],
+    "Sales Team": [],
+    "Technical Team": []
+};
+
+/* USERS */
+let users = {
+    "You": "online",
+    "Rahul": "online",
+    "Priya": "offline",
+    "Amit": "online",
+    "Neha": "offline"
+};
+
+/* AI CHAT */
+let aiMessages = [];
+
+/* LOAD GROUPS */
+function loadGroups() {
+    let groupList = document.getElementById("groupList");
+    groupList.innerHTML = "";
+
+    for (let group in groups) {
+        let div = document.createElement("div");
+        div.className = "chat-item";
+        div.innerText = "👥 " + group;
+        div.onclick = () => openGroup(group);
+        groupList.appendChild(div);
+    }
+}
+loadGroups();
+
+/* OPEN GROUP */
+function openGroup(groupName) {
+    currentChat = groupName;
+
+    document.getElementById("chatHeader").innerText =
+        groupName + " (" + getOnlineCount() + " online)";
+
+    renderMessages();
+}
+
+/* OPEN AI */
+function openAI() {
+    currentChat = "ai";
+    document.getElementById("chatHeader").innerText = "AI Assistant";
+    renderMessages();
+}
+
+/* SEND MESSAGE */
+function sendMessage() {
+    let input = document.getElementById("messageInput");
+    let text = input.value.trim();
+    if (!text) return;
+
+    if (currentChat === "ai") {
+        aiMessages.push({
+            name: "You",
+            text: text,
+            type: "sent"
+        });
+
+        setTimeout(() => {
+            aiMessages.push({
+                name: "AI",
+                text: getAIResponse(text),
+                type: "received"
+            });
+            renderMessages();
+        }, 500);
+
+    } else if (currentChat) {
+        groups[currentChat].push({
+            name: currentUser,
+            text: text,
+            type: "sent"
+        });
+
+        setTimeout(() => {
+            let randomUser = getRandomUser();
+            groups[currentChat].push({
+                name: randomUser,
+                text: "Reply from " + randomUser,
+                type: "received"
+            });
+            renderMessages();
+        }, 800);
+    }
+
+    input.value = "";
+    renderMessages();
+}
+
+/* RENDER */
+function renderMessages() {
+    let chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = "";
+
+    let messages = currentChat === "ai"
+        ? aiMessages
+        : groups[currentChat] || [];
+
+    messages.forEach(msg => {
+        let div = document.createElement("div");
+        div.className = "message " + msg.type;
+
+        div.innerHTML = `
+            <div class="name">${msg.name} (${users[msg.name] || "online"})</div>
+            <div>${msg.text}</div>
+        `;
+
+        chatBox.appendChild(div);
+    });
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+/* AI */
+function getAIResponse(input) {
+    input = input.toLowerCase();
+
+    if (input.includes("login")) return "Please check your login credentials.";
+    if (input.includes("error")) return "Try refreshing or contact support.";
+    if (input.includes("navigation")) return "Go to Dashboard > Menu.";
+    if (input.includes("help")) return "I’m here to help you!";
+
+    return "Please explain your issue clearly.";
+}
+
+/* HELPERS */
+function getRandomUser() {
+    let keys = Object.keys(users).filter(u => u !== "You");
+    return keys[Math.floor(Math.random() * keys.length)];
+}
+
+function getOnlineCount() {
+    return Object.values(users).filter(s => s === "online").length;
+}
+</script>
+
+</body>
+</html>
