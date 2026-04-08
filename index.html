@@ -155,9 +155,9 @@ let currentChat = null;
 
 /* GROUPS */
 let groups = {
-    "Support Team": [],
-    "Sales Team": [],
-    "Technical Team": []
+    "104 Team": [],
+    "DFCA Team": [],
+    "KCC Team": []
 };
 
 /* USERS */
@@ -248,7 +248,9 @@ function sendMessage() {
     renderMessages();
 }
 
+
 /* RENDER */
+
 function renderMessages() {
     let chatBox = document.getElementById("chatBox");
     chatBox.innerHTML = "";
@@ -261,9 +263,19 @@ function renderMessages() {
         let div = document.createElement("div");
         div.className = "message " + msg.type;
 
+        // let messageText = msg.text;
+        let messageText = msg.text.replace(/\n/g, "<br>");
+
+        if (messageText.includes("9876543210")) {
+            messageText = messageText.replace(
+                "9876543210",
+                '<a href="tel:9876543210" class="call-link">9876543210</a>'
+            );
+        }
+
         div.innerHTML = `
             <div class="name">${msg.name} (${users[msg.name] || "online"})</div>
-            <div>${msg.text}</div>
+            <div>${messageText}</div>
         `;
 
         chatBox.appendChild(div);
@@ -272,17 +284,30 @@ function renderMessages() {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-/* AI */
+
+/* AI RESPONSE */
 function getAIResponse(input) {
     input = input.toLowerCase();
 
-    if (input.includes("login")) return "Please check your login credentials.";
-    if (input.includes("error")) return "Try refreshing or contact support.";
-    if (input.includes("navigation")) return "Go to Dashboard > Menu.";
-    if (input.includes("help")) return "I’m here to help you!";
+    if (input.includes("hi") || input.includes("hello") || input.includes("hii")) {
+        return "Welcome to Baba Computer 💻\nWe provide the following services:\n1. Website Applica on & Development\n2. Customized ERP\n3. CMS  (Content management system)\n4. Mobile Apps\n5.BPO /Call Center \n6. Research & Development \n7.Graphic Design & Multimedia \n8. Hardware Sales Services & Maintenance\n9.  IT Consultancy\n10. Out Bound Dialling (OBD) Services\n📞 Call us: 06513505300\n\nHow can I assist you today?";
+    }
 
-    return "Please explain your issue clearly.";
+    if (input.includes("call") || input.includes("number") || input.includes("contact")) {
+        return "📞 Contact Baba Computer:\nPhone: 06513505300";
+    }
+
+    if (input.includes("service")) {
+        return "Our services:\n- 1. Website Applica on & Development\n2. Customized ERP\n3. CMS  (Content management system)\n4. Mobile Apps\n5.BPO /Call Center \n6. Research & Development \n7.Graphic Design & Multimedia \n8. Hardware Sales Services & Maintenance\n9.  IT Consultancy\n10. Out Bound Dialling (OBD) Services\n📞 06513505300";
+    }
+
+    if (input.includes("error")) {
+        return "Please restart system or call support: 06513505300";
+    }
+
+    return "Welcome to Baba Computer 💻\n📞 06513505300\nTell me your issue.";
 }
+
 
 /* HELPERS */
 function getRandomUser() {
